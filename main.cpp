@@ -168,7 +168,7 @@ struct Graph {
                     vector<Vertex> p = from->path.path;
                     p.push_back(vertices[i]);
                     Path path1 = Path(p);
-                    if (i == v_s) {
+                    if (i == v_e) {
                         return path1;
                     }
                     Node node = Node(vertices[i], path1);
@@ -185,7 +185,8 @@ struct Graph {
 int main() {
 
     Graph g = Graph(5, "turkish-dictionary.txt");
-    Path p = g.findShortestPath("zombi", "kombi");
+    g.printEdges();
+    Path p = g.findShortestPath("zorla", "zorlu");
 
     for (auto& item : p.path) {
         cout << item.word << " <--->";
