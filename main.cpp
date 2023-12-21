@@ -47,6 +47,36 @@ struct Queue {
 
     Queue() : front(nullptr), rear(nullptr) {}
 
+    void enqueue(Node* node) {
+        if (front == nullptr) {
+            front = node;
+        } else if (rear == nullptr) {
+            rear = node;
+            front->prev = node;
+            node->next = front;
+        } else {
+            rear->prev = node;
+            node->next = rear;
+            rear = node;
+        }
+    }
+
+    Node* dequeue() {
+        if (rear != nullptr) {
+            Node* temp = rear;
+            rear = rear->next;
+            return temp;
+        } else if (front != nullptr) {
+            Node* temp = front;
+            front = nullptr;
+            return temp;
+        }
+        return nullptr;
+    }
+
+    bool isEmpty() {
+        return front == nullptr;
+    }
 };
 
 struct Graph {
@@ -97,6 +127,10 @@ struct Graph {
     }
 
     Path findShortestPath(string start, string end) {
+        bool visited[size];
+        for (int i = 0; i < size; i++) {
+            visited[i] = false;
+        }
         int v_s = -1;
         int v_e = -1;
         for (int i = 0; i < size; i++) {
@@ -119,7 +153,13 @@ struct Graph {
             vector<Vertex> end_and_start_same{Vertex("END AND START ARE EQUAL")};
             return Path(end_and_start_same);
         }
+        Queue queue = Queue();
+        Path path = Path(vector<Vertex>{vertices[v_s]});
+        Node node = Node(vertices[v_s], path);
+        queue.enqueue(&node);
+        while (!queue.isEmpty()) {
 
+        }
     }
 };
 
