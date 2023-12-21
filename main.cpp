@@ -1,7 +1,3 @@
-//
-// Created by fo033759 on 12/21/2023.
-//
-
 #include <iostream>
 #include <string>
 #include <fstream>
@@ -9,7 +5,10 @@
 
 using namespace std;
 
-bool oneCharDifferent(string first, string second) {
+bool oneCharDifferent(string first, string second, int length) {
+    if (first.size() != length || second.size() != length) {
+        return false;
+    }
     bool detectedOneDifference = false;
     for (int i = 0; i < first.size(); i++) {
         if (detectedOneDifference && first[i] != second[i]) {
@@ -25,7 +24,12 @@ bool oneCharDifferent(string first, string second) {
 struct Vertex {
     string word;
 
-    Vertex(string word) : word(move(word)) {}
+    Vertex(string word) : word(std::move(word)) {}
+};
+
+struct Path {
+    vector<Vertex> path;
+    Path(vector<Vertex> path) : path(path) {}
 };
 
 struct Graph {
@@ -42,7 +46,7 @@ struct Graph {
             string word;
             while (getline(file, word)) {
                 if (word.length() == wordLength) {
-                    vertices.push_back(Vertex(word));
+                    vertices.emplace_back(Vertex(word));
                 }
             }
         } else {
@@ -53,15 +57,11 @@ struct Graph {
 
         size = vertices.size();
 
-        adjMat = vector<vector<int>>();
-        for (int i = 0; i < size; i++) {
-            adjMat[i] = vector<int>(0);
-        }
-
+        adjMat = vector<vector<int>>(size,vector<int>(size, 0));
 
         for (int i = 0; i < size; i++) {
             for (int j = i + 1; j < size; j++) {
-                if (oneCharDifferent(vertices[i].word, vertices[j].word)) {
+                if (oneCharDifferent(vertices[i].word, vertices[j].word, wordLength)) {
                     adjMat[i][j] = 1;
                     adjMat[j][i] = 1;
                 }
@@ -78,6 +78,32 @@ struct Graph {
             }
         }
     }
+
+    Path findShortestPath(string start, string end) {
+        int v_s = -1;
+        int v_e = -1;
+        for (int i = 0; i < size; i++) {
+            if (vertices[i].word.compare(start) == 0) {
+                v_s = i;
+            }
+            if (vertices[i].word.compare(end) == 0) {
+                v_e = i;
+            }
+        }
+        if (v_s == -1) {
+            vector<Vertex> start_not_found{Vertex("START NOT FOUND")};
+            return Path(start_not_found);
+        }
+        if (v_e == -1) {
+            vector<Vertex> end_not_found{Vertex("END NOT FOUND")};
+            return Path(end_not_found);
+        }
+        if (v_s == v_e) {
+            vector<Vertex> end_and_start_same{Vertex("END AND START ARE EQUAL")};
+            return Path(end_and_start_same);
+        }
+
+    }
 };
 
 
@@ -85,7 +111,6 @@ int main() {
 
     Graph g = Graph(5, "turkish-dictionary.txt");
     g.printEdges();
-
 
     return 0;
 }
