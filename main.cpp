@@ -22,9 +22,10 @@ bool oneCharDifferent(string first, string second, int length) {
 }
 
 struct Vertex {
+    int id;
     string word;
 
-    Vertex(string word) : word(std::move(word)) {}
+    Vertex(string word, int id) : word(std::move(word)), id(id) {}
 };
 
 struct Path {
@@ -90,10 +91,12 @@ struct Graph {
         ifstream file(filePath);
 
         if (file.is_open()) {
+            int id = 0;
             string word;
             while (getline(file, word)) {
                 if (word.length() == wordLength) {
-                    vertices.emplace_back(Vertex(word));
+                    vertices.emplace_back(Vertex(word, id));
+                    id++;
                 }
             }
         } else {
@@ -142,15 +145,15 @@ struct Graph {
             }
         }
         if (v_s == -1) {
-            vector<Vertex> start_not_found{Vertex("START NOT FOUND")};
+            vector<Vertex> start_not_found{Vertex("START NOT FOUND", -1)};
             return Path(start_not_found);
         }
         if (v_e == -1) {
-            vector<Vertex> end_not_found{Vertex("END NOT FOUND")};
+            vector<Vertex> end_not_found{Vertex("END NOT FOUND", -1)};
             return Path(end_not_found);
         }
         if (v_s == v_e) {
-            vector<Vertex> end_and_start_same{Vertex("END AND START ARE EQUAL")};
+            vector<Vertex> end_and_start_same{Vertex("END AND START ARE EQUAL", -1)};
             return Path(end_and_start_same);
         }
         Queue queue = Queue();
@@ -158,8 +161,22 @@ struct Graph {
         Node node = Node(vertices[v_s], path);
         queue.enqueue(&node);
         while (!queue.isEmpty()) {
-
+            Node* from = queue.dequeue();
+            visited[from->vertex.id] = true;
+            for (int i = 0; i < size; i++) {
+                if (adjMat[from->vertex.id][i] == 1 && !visited[i]) {
+                    vector<Vertex> p = from->path.path;
+                    p.push_back(vertices[i]);
+                    Path path1 = Path(p);
+                    if (i == v_s) {
+                        return path1;
+                    }
+                    Node node = Node(vertices[i], path1);
+                    queue.enqueue(&node);
+                }
+            }
         }
+        vector<Vertex> end_and_start_same{Vertex("END AND START ARE EQUAL", -1)};
     }
 };
 
