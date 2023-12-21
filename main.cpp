@@ -176,7 +176,8 @@ struct Graph {
                 }
             }
         }
-        vector<Vertex> end_and_start_same{Vertex("END AND START ARE EQUAL", -1)};
+        vector<Vertex> end_not_reachable{Vertex("END NOT REACHABLE", -1)};
+        return Path(end_not_reachable);
     }
 };
 
@@ -184,7 +185,11 @@ struct Graph {
 int main() {
 
     Graph g = Graph(5, "turkish-dictionary.txt");
-    g.printEdges();
+    Path p = g.findShortestPath("zombi", "kombi");
+
+    for (auto& item : p.path) {
+        cout << item.word << " <--->";
+    }
 
     return 0;
 }
