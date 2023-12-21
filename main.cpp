@@ -66,6 +66,7 @@ struct Queue {
         if (rear != nullptr) {
             Node* temp = rear;
             rear = rear->next;
+            rear->prev = nullptr;
             return temp;
         } else if (front != nullptr) {
             Node* temp = front;
@@ -185,11 +186,10 @@ struct Graph {
 int main() {
 
     Graph g = Graph(5, "turkish-dictionary.txt");
-    g.printEdges();
-    Path p = g.findShortestPath("zorla", "zorlu");
+    Path p = g.findShortestPath("tamam", "devam");
 
     for (auto& item : p.path) {
-        cout << item.word << " <--->";
+        cout << item.word << " --->";
     }
 
     return 0;
