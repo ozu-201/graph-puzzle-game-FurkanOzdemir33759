@@ -32,6 +32,23 @@ struct Path {
     Path(vector<Vertex> path) : path(path) {}
 };
 
+struct Node {
+    Vertex& vertex;
+    Path& path;
+    Node* next;
+    Node* prev;
+
+    Node(Vertex& vertex, Path& path) : vertex(vertex), path(path), next(nullptr), prev(nullptr) {}
+};
+
+struct Queue {
+    Node* front;
+    Node* rear;
+
+    Queue() : front(nullptr), rear(nullptr) {}
+
+};
+
 struct Graph {
     int wordLength;
     int size;
