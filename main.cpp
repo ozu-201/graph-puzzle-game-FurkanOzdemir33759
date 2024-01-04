@@ -5,192 +5,109 @@
 
 using namespace std;
 
-bool oneCharDifferent(string first, string second, int length) {
-    if (first.size() != length || second.size() != length) {
-        return false;
-    }
-    bool detectedOneDifference = false;
-    for (int i = 0; i < first.size(); i++) {
-        if (detectedOneDifference && first[i] != second[i]) {
+bool oneCharDiff(string& s1, string& s2) {
+    bool diffDetected = false;
+    for (int i = 0; i < s1.size(); i++) {
+        if (diffDetected && s1[i] != s2[i]) {
             return false;
         }
-        if (first[i] != second[i]) {
-            detectedOneDifference = true;
+        if (s1[i] != s2[i]) {
+            diffDetected = true;
         }
     }
-    return detectedOneDifference;
+    return diffDetected;
 }
-
-struct Vertex {
-    int id;
-    string word;
-
-    Vertex(string word, int id) : word(std::move(word)), id(id) {}
-};
-
-struct Path {
-    vector<Vertex> path;
-    Path(vector<Vertex> path) : path(path) {}
-};
-
-struct Node {
-    Vertex& vertex;
-    Path& path;
-    Node* next;
-    Node* prev;
-
-    Node(Vertex& vertex, Path& path) : vertex(vertex), path(path), next(nullptr), prev(nullptr) {}
-};
-
-struct Queue {
-    Node* front;
-    Node* rear;
-
-    Queue() : front(nullptr), rear(nullptr) {}
-
-    void enqueue(Node* node) {
-        if (front == nullptr) {
-            front = node;
-        } else if (rear == nullptr) {
-            rear = node;
-            front->prev = node;
-            node->next = front;
-        } else {
-            rear->prev = node;
-            node->next = rear;
-            rear = node;
-        }
-    }
-
-    Node* dequeue() {
-        if (rear != nullptr) {
-            Node* temp = rear;
-            rear = rear->next;
-            rear->prev = nullptr;
-            return temp;
-        } else if (front != nullptr) {
-            Node* temp = front;
-            front = nullptr;
-            return temp;
-        }
-        return nullptr;
-    }
-
-    bool isEmpty() {
-        return front == nullptr;
-    }
-};
 
 struct Graph {
-    int wordLength;
-    int size;
-    vector<Vertex> vertices;
-    vector<vector<int>> adjMat;
+    vector<string> vertices;
+    vector<vector<int>> edges;
 
-    Graph(int wordLength, string filePath) : wordLength(wordLength), vertices(vector<Vertex>()) {
+    Graph(int wordSize, string filePath) {
+        vertices = vector<string>{};
 
-        ifstream file(filePath);
+        fstream file(filePath);
 
         if (file.is_open()) {
-            int id = 0;
-            string word;
-            while (getline(file, word)) {
-                if (word.length() == wordLength) {
-                    vertices.emplace_back(Vertex(word, id));
-                    id++;
+            string line;
+            while (getline(file, line)) {
+                if (line.size() == wordSize) {
+                    vertices.push_back(line);
                 }
             }
         } else {
-            cerr << "File is not available!" << endl;
+            cerr << "File not readable!" << endl;
         }
 
-        file.close();
+        edges = vector<vector<int>>(vertices.size(), vector<int>(vertices.size(), 0));
 
-        size = vertices.size();
-
-        adjMat = vector<vector<int>>(size,vector<int>(size, 0));
-
-        for (int i = 0; i < size; i++) {
-            for (int j = i + 1; j < size; j++) {
-                if (oneCharDifferent(vertices[i].word, vertices[j].word, wordLength)) {
-                    adjMat[i][j] = 1;
-                    adjMat[j][i] = 1;
+        for (int i = 0; i < vertices.size(); i++) {
+            for (int j = i + 1; j < vertices.size(); j++) {
+                if (oneCharDiff(vertices[i],vertices[j])) {
+                    edges[i][j] = 1;
+                    edges[j][i] = 1;
                 }
             }
         }
     }
 
-    void printEdges() {
-        for (int i = 0; i < size; i++) {
-            for (int j = i+1; j < size; j++) {
-                if (adjMat[i][j] == 1) {
-                    cout << vertices[i].word << " <---> " << vertices[j].word << endl;
-                }
-            }
-        }
-    }
-
-    Path findShortestPath(string start, string end) {
-        bool visited[size];
-        for (int i = 0; i < size; i++) {
-            visited[i] = false;
-        }
+    vector<string> BFS(string start, string end) {
         int v_s = -1;
         int v_e = -1;
-        for (int i = 0; i < size; i++) {
-            if (vertices[i].word.compare(start) == 0) {
-                v_s = i;
+        vector<bool> visited = vector<bool>(vertices.size(), false);
+        vector<int> prev = vector<int>(vertices.size(), -1);
+        for (int i = 0; i < vertices.size(); i++) {
+            if (vertices[i] == start) {v_e = i;}
+            if (vertices[i] == end) {v_s = i;}
+        }
+        if (v_e == -1) {return vector<string>{"START NOT FOUND!"};}
+        if (v_s == -1) {return vector<string>{"END NOT FOUND!"};}
+        if (v_e == v_s) {return vector<string>{"SAME START AND END!"};}
+        vector<int> queue{};
+        queue.push_back(v_s);
+        visited[v_s] = true;
+        while (!queue.empty()) {
+            int current = *queue.erase(queue.begin());
+            if (current == v_e) {
+                vector<string> path{};
+                while (current != v_s) {
+                    path.push_back(vertices[current]);
+                    current = prev[current];
+                }
+                path.push_back(vertices[v_s]);
+                return path;
             }
-            if (vertices[i].word.compare(end) == 0) {
-                v_e = i;
-            }
-        }
-        if (v_s == -1) {
-            vector<Vertex> start_not_found{Vertex("START NOT FOUND", -1)};
-            return Path(start_not_found);
-        }
-        if (v_e == -1) {
-            vector<Vertex> end_not_found{Vertex("END NOT FOUND", -1)};
-            return Path(end_not_found);
-        }
-        if (v_s == v_e) {
-            vector<Vertex> end_and_start_same{Vertex("END AND START ARE EQUAL", -1)};
-            return Path(end_and_start_same);
-        }
-        Queue queue = Queue();
-        Path path = Path(vector<Vertex>{vertices[v_s]});
-        Node node = Node(vertices[v_s], path);
-        queue.enqueue(&node);
-        while (!queue.isEmpty()) {
-            Node* from = queue.dequeue();
-            visited[from->vertex.id] = true;
-            for (int i = 0; i < size; i++) {
-                if (adjMat[from->vertex.id][i] == 1 && !visited[i]) {
-                    vector<Vertex> p = from->path.path;
-                    p.push_back(vertices[i]);
-                    Path path1 = Path(p);
-                    if (i == v_e) {
-                        return path1;
-                    }
-                    Node node = Node(vertices[i], path1);
-                    queue.enqueue(&node);
+            for (int i = 0; i < vertices.size(); i++) {
+                if (!visited[i] && edges[current][i] == 1) {
+                    queue.push_back(i);
+                    visited[i] = true;
+                    prev[i] = current;
                 }
             }
         }
-        vector<Vertex> end_not_reachable{Vertex("END NOT REACHABLE", -1)};
-        return Path(end_not_reachable);
+        return vector<string>{"END IS NOT REACHABLE FROM THIS START!"};
     }
+
+    friend ostream& operator<<(ostream& os, const vector<string>& container);
 };
 
 
-int main() {
-
-    Graph g = Graph(5, "turkish-dictionary.txt");
-    Path p = g.findShortestPath("tamam", "devam");
-
-    for (auto& item : p.path) {
-        cout << item.word << " --->";
+ostream& operator<<(ostream& os, const vector<string>& container) {
+    for (auto iter = container.begin(); iter != container.end(); iter++) {
+        os << *iter;
+        if (iter + 1 != container.end()) {
+            os << " --> ";
+        }
     }
-
-    return 0;
+    os << "\n";
+    return os;
 }
+
+int main() {
+    // IF FILE IS NOT READABLE MAKE SURE TO CONFIGURE WORKING DIRECTORY PROPERLY OR USE ABSOLUTE PATH!
+    Graph g{5, "turkish-dictionary.txt"};
+    cout << g.BFS("selim", "devam");
+    return -1;
+}
+
+
+
